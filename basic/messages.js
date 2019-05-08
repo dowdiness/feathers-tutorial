@@ -1,6 +1,4 @@
-const feathers = require('@feathersjs/feathers');
-
-class Messages {
+module.exports = class Messages {
   constructor() {
     this.messages = [];
     this.currentId = 0;
@@ -58,51 +56,3 @@ class Messages {
     return message;
   }
 }
-
-const app = feathers();
-
-// Initialize the messages service by creating
-// a new instance of our class
-app.use('messages', new Messages());
-
-const setTimestamp = name => {
-  return async context => {
-    context.data[name] = new Date();
-
-    return context;
-  }
-} 
-
-app.service('messages').hooks({
-  before: {
-    create: setTimestamp('createdAt'),
-    update: setTimestamp('updatedAt')
-  }
-});
-
-async function processMessages() {
-  app.service('messages').on('created', message => {
-    console.log('Created a new message', message);
-  });
-
-  app.service('messages').on('removed', message => {
-    console.log('Deleted message', message);
-  });
-
-  await app.service('messages').create({
-    text: 'First message'
-  });
-
-  const lastMessage = await app.service('messages').create({
-    text: 'Second message'
-  });
-
-  // Remove the message we just created
-  await app.service('messages').remove(lastMessage.id);
-
-  const messageList = await app.service('messages').find();
-
-  console.log('Available messages', messageList);
-}
-
-processMessages();
